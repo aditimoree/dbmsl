@@ -1,0 +1,54 @@
+-- Creating Dept table with Primary Key constraint
+CREATE TABLE Dept (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(50) NOT NULL,
+    Location VARCHAR(50)
+);
+
+-- Creating Emp table with constraints
+CREATE TABLE Emp (
+    EmpID INT PRIMARY KEY,
+    EmpName VARCHAR(50) NOT NULL,
+    JobTitle VARCHAR(50),
+    Salary DECIMAL(10, 2),
+    DeptID INT,
+    HireDate DATE,
+    FOREIGN KEY (DeptID) REFERENCES Dept(DeptID) -- Foreign Key constraint
+);
+
+CREATE VIEW View_DeptEmployees AS
+SELECT EmpID, EmpName, JobTitle, DeptName
+FROM Emp
+JOIN Dept ON Emp.DeptID = Dept.DeptID
+WHERE DeptName = 'Sales';
+
+CREATE VIEW View_DeptEmpCount AS
+SELECT DeptName, COUNT(EmpID) AS EmpCount
+FROM Emp
+JOIN Dept ON Emp.DeptID = Dept.DeptID
+GROUP BY DeptName;
+
+-- Inserting into View_DeptEmployees (data will reflect in the Emp table)
+INSERT INTO View_DeptEmployees (EmpID, EmpName, JobTitle, DeptName)
+VALUES (101, 'John Doe', 'Manager', 'Sales');
+
+-- Updating via View_DeptEmployees
+UPDATE View_DeptEmployees
+SET JobTitle = 'Senior Manager'
+WHERE EmpName = 'John Doe';
+
+-- Deleting via View_DeptEmployees
+DELETE FROM View_DeptEmployees
+WHERE EmpName = 'John Doe';
+
+CREATE INDEX EmployeeId ON Emp (DeptID ASC, EmpID ASC);
+
+CREATE SEQUENCE EmpID_Seq
+START WITH 1
+INCREMENT BY 1
+MINVALUE 1
+MAXVALUE 9999
+NOCYCLE;
+
+DROP INDEX EmployeeId;
+

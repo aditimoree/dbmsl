@@ -1,0 +1,49 @@
+DECLARE 
+v_roll_no Borrower.Roll_no%TYPE; 
+v_name_of_book Borrower.NameofBook%TYPE; -- Declare variables for fine calculation 
+v_date_of_issue Borrower.DateofIssue%TYPE; 
+v_current_date DATE := SYSDATE; 
+v_days_overdue NUMBER; 
+v_fine_amount NUMBER := 0; 
+v_status Borrower.Status%TYPE; -- Exception handling variables 
+v_no_book_found EXCEPTION; 
+v_invalid_roll_no EXCEPTION;
+ 
+BEGIN 
+v_roll_no := &roll_no;  
+v_name_of_book := '&name_of_book'; 
+
+SELECT DateofIssue, Status INTO v_date_of_issue, v_status 
+FROM Borrower 
+WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book;
+
+IF v_status = 'I' THEN -- Calculate number of days overdue 
+v_days_overdue := TRUNC(v_current_date - v_date_of_issue);
+
+IF v_days_overdue BETWEEN 15 AND 30 THEN 
+v_fine_amount := v_days_overdue * 5; 
+ELSIF v_days_overdue > 30 THEN 
+v_fine_amount := (30 * 5) + ((v_days_overdue - 30) * 50);
+END IF; 
+UPDATE Borrower 
+SET Status = 'R' 
+WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book; 
+IF v_fine_amount > 0 THEN 
+INSERT INTO Fine (Roll_no, Date, Amt)  
+VALUES (v_roll_no, v_current_date, v_fine_amount); 
+DBMS_OUTPUT.PUT_LINE('Fine recorded: Rs ' || v_fine_amount); 
+ELSE 
+DBMS_OUTPUT.PUT_LINE('No fine applicable. Book returned on time.'); 
+END IF; 
+ELSE 
+RAISE v_no_book_found;   
+END IF; 
+EXCEPTION 
+WHEN v_no_book_found THEN 
+DBMS_OUTPUT.PUT_LINE('No record found for the given Roll Number and Book Name.'); 
+WHEN NO_DATA_FOUND THEN 
+DBMS_OUTPUT.PUT_LINE('Invalid Roll Number or Book Name.'); 
+WHEN OTHERS THEN 
+DBMS_OUTPUT.PUT_LINE('An unexpected error occurred: ' || SQLERRM); 
+END; 
+/ 

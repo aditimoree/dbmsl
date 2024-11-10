@@ -1,0 +1,57 @@
+create database lib;
+use lib;
+
+CREATE TABLE Library (
+    book_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_title VARCHAR(100),
+    author_name VARCHAR(100)
+);
+
+CREATE TABLE Library_Audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT,
+    book_title VARCHAR(100),
+    author_name VARCHAR(100),
+    action_type VARCHAR(50),  
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO Library (book_title, author_name)
+VALUES
+('Operating System', 'abc'),
+('Computer Networks', 'lmn'),
+('Toc', 'xyz'),
+('DBMS', 'pqr');
+
+DELIMITER //
+
+CREATE TRIGGER before_library_update
+BEFORE UPDATE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (book_id, book_title, author_name, action_type)
+    VALUES (OLD.book_id, OLD.book_title, OLD.author_name, 'UPDATE');
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER after_library_delete
+AFTER DELETE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (book_id, book_title, author_name, action_type)
+    VALUES (OLD.book_id, OLD.book_title, OLD.author_name, 'DELETE');
+END //
+
+DELIMITER ;
+
+UPDATE Library
+SET book_title = 'Theory of computation'
+WHERE book_id = 3;
+
+DELETE FROM Library
+WHERE book_id = 1;
+
+Select * from Library_audit;

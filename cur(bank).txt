@@ -1,0 +1,38 @@
+create database bank;
+USE bank;
+
+CREATE TABLE IF NOT EXISTS accounts (
+    account_id INT PRIMARY KEY AUTO_INCREMENT,
+    account_holder_name VARCHAR(100),
+    last_transaction_date DATE,
+    status VARCHAR(20)
+);
+
+INSERT INTO accounts (account_holder_name, last_transaction_date, status)
+VALUES 
+('Jj', '2022-01-10', 'inactive'),
+('Pratik', '2023-10-01', 'active'),
+('abc', '2021-05-15', 'inactive'),
+('xyz', '2022-09-20', 'inactive');
+
+DELIMITER $$
+CREATE PROCEDURE ActivateInactiveAccounts()
+BEGIN
+    DECLARE rows_affected INT DEFAULT 0;
+    
+    UPDATE accounts
+    SET status = 'active'
+    WHERE last_transaction_date < CURDATE() - INTERVAL 365 DAY
+      AND status = 'inactive';
+
+    SET rows_affected = ROW_COUNT();
+
+    IF rows_affected > 0 THEN
+        SELECT CONCAT('Total accounts activated: ', rows_affected) AS Message;
+    ELSE
+        SELECT 'No inactive accounts found to activate' AS Message;
+    END IF;
+END$$
+DELIMITER ;
+
+CALL ActivateInactiveAccounts();

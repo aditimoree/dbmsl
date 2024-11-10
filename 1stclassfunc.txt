@@ -1,0 +1,55 @@
+create database grade;
+use grade;
+CREATE TABLE Stud_Marks (
+    Roll INT PRIMARY KEY,
+    name VARCHAR(50),
+    total_marks INT
+);
+
+CREATE TABLE Result (
+    Roll INT,
+    Name VARCHAR(50),
+    Class VARCHAR(50),
+    FOREIGN KEY (Roll) REFERENCES Stud_Marks(Roll)
+);
+INSERT INTO Stud_Marks (roll,name, total_marks) 
+VALUES
+(1,'John Doe', 1200),
+(2,'Jane Smith', 950),
+(3,'Bob Johnson', 880),
+(4,'Alice Brown', 800);
+
+DELIMITER //
+CREATE FUNCTION proc_Grade(marks INT) 
+RETURNS VARCHAR(50)
+DETERMINISTIC
+BEGIN
+    DECLARE grade_category VARCHAR(50);
+    
+    IF marks <= 1500 AND marks >= 990 THEN
+        SET grade_category = 'Distinction';
+    ELSEIF marks <= 989 AND marks >= 900 THEN
+        SET grade_category = 'First Class';
+    ELSEIF marks <= 899 AND marks >= 825 THEN
+        SET grade_category = 'Higher Second Class';
+    ELSE
+        SET grade_category = 'Not Classified';
+    END IF;
+    
+    RETURN grade_category;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE process_grades()
+BEGIN
+    TRUNCATE TABLE Result;
+    INSERT INTO Result (Roll, Name, Class)
+    SELECT Roll,name,proc_Grade(total_marks)
+    FROM Stud_Marks;
+END //
+DELIMITER ;
+
+CALL process_grades();
+
+SELECT * FROM Result;
