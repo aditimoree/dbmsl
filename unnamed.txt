@@ -1,49 +1,82 @@
-DECLARE 
-v_roll_no Borrower.Roll_no%TYPE; 
-v_name_of_book Borrower.NameofBook%TYPE; -- Declare variables for fine calculation 
-v_date_of_issue Borrower.DateofIssue%TYPE; 
-v_current_date DATE := SYSDATE; 
-v_days_overdue NUMBER; 
-v_fine_amount NUMBER := 0; 
-v_status Borrower.Status%TYPE; -- Exception handling variables 
-v_no_book_found EXCEPTION; 
-v_invalid_roll_no EXCEPTION;
- 
-BEGIN 
-v_roll_no := &roll_no;  
-v_name_of_book := '&name_of_book'; 
+-- Create Borrower table
+CREATE TABLE Borrower (
+    Roll_no INT,
+    NameofBook VARCHAR(255),
+    DateofIssue DATE,
+    Status CHAR(1)
+);
 
-SELECT DateofIssue, Status INTO v_date_of_issue, v_status 
-FROM Borrower 
-WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book;
+-- Create Fine table
+CREATE TABLE Fine (
+    Roll_no INT,
+    Date DATE,
+    Amt DECIMAL(10, 2)
+);
 
-IF v_status = 'I' THEN -- Calculate number of days overdue 
-v_days_overdue := TRUNC(v_current_date - v_date_of_issue);
+-- Insert sample data into Borrower table
+INSERT INTO Borrower (Roll_no, NameofBook, DateofIssue, Status) VALUES
+(101, 'Database Management Systems', '2024-09-01', 'I'),
+(102, 'Data Structures', '2024-09-15', 'I'),
+(103, 'Operating Systems', '2024-10-01', 'I'),
+(104, 'Computer Networks', '2024-10-10', 'R'), -- Already returned book
+(105, 'Algorithms', '2024-09-20', 'I');
 
-IF v_days_overdue BETWEEN 15 AND 30 THEN 
-v_fine_amount := v_days_overdue * 5; 
-ELSIF v_days_overdue > 30 THEN 
-v_fine_amount := (30 * 5) + ((v_days_overdue - 30) * 50);
-END IF; 
-UPDATE Borrower 
-SET Status = 'R' 
-WHERE Roll_no = v_roll_no AND NameofBook = v_name_of_book; 
-IF v_fine_amount > 0 THEN 
-INSERT INTO Fine (Roll_no, Date, Amt)  
-VALUES (v_roll_no, v_current_date, v_fine_amount); 
-DBMS_OUTPUT.PUT_LINE('Fine recorded: Rs ' || v_fine_amount); 
-ELSE 
-DBMS_OUTPUT.PUT_LINE('No fine applicable. Book returned on time.'); 
-END IF; 
-ELSE 
-RAISE v_no_book_found;   
-END IF; 
-EXCEPTION 
-WHEN v_no_book_found THEN 
-DBMS_OUTPUT.PUT_LINE('No record found for the given Roll Number and Book Name.'); 
-WHEN NO_DATA_FOUND THEN 
-DBMS_OUTPUT.PUT_LINE('Invalid Roll Number or Book Name.'); 
-WHEN OTHERS THEN 
-DBMS_OUTPUT.PUT_LINE('An unexpected error occurred: ' || SQLERRM); 
-END; 
-/ 
+-- Create procedure to process book returns and calculate fines
+DELIMITER //
+
+CREATE PROCEDURE process_return (
+    IN p_roll_no INT,
+    IN p_name_of_book VARCHAR(255)
+)
+BEGIN
+    DECLARE v_date_of_issue DATE;
+    DECLARE v_current_date DATE DEFAULT CURDATE();
+    DECLARE v_days_overdue INT;
+    DECLARE v_fine_amount DECIMAL(10, 2) DEFAULT 0;
+    DECLARE v_status CHAR(1);
+
+    -- Exception handling for missing records
+    DECLARE EXIT HANDLER FOR NOT FOUND
+        SELECT 'Invalid Roll Number or Book Name.' AS error_message;
+
+    -- Fetch issue date and status of the book
+    SELECT DateofIssue, Status INTO v_date_of_issue, v_status
+    FROM Borrower
+    WHERE Roll_no = p_roll_no AND NameofBook = p_name_of_book;
+
+    -- If the book is still issued, calculate fine
+    IF v_status = 'I' THEN
+        SET v_days_overdue = DATEDIFF(v_current_date, v_date_of_issue);
+
+        -- Fine calculation based on overdue days
+        IF v_days_overdue BETWEEN 15 AND 30 THEN
+            SET v_fine_amount = v_days_overdue * 5;
+        ELSEIF v_days_overdue > 30 THEN
+            SET v_fine_amount = (30 * 5) + ((v_days_overdue - 30) * 50);
+        END IF;
+
+        -- Update book status to 'R' (returned)
+        UPDATE Borrower
+        SET Status = 'R'
+        WHERE Roll_no = p_roll_no AND NameofBook = p_name_of_book;
+
+        -- Insert a fine record if applicable
+        IF v_fine_amount > 0 THEN
+            INSERT INTO Fine (Roll_no, Date, Amt)
+            VALUES (p_roll_no, v_current_date, v_fine_amount);
+            SELECT CONCAT('Fine recorded: Rs ', v_fine_amount) AS message;
+        ELSE
+            SELECT 'No fine applicable. Book returned on time.' AS message;
+        END IF;
+    ELSE
+        -- Raise error if the book is not currently issued
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No record found for the given Roll Number and Book Name.';
+    END IF;
+
+END //
+
+DELIMITER ;
+
+CALL process_return(101, 'Database Management Systems');
+
+SELECT * FROM Fine;
