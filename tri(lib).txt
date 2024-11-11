@@ -1,57 +1,52 @@
-create database lib;
-use lib;
-
 CREATE TABLE Library (
-    book_id INT AUTO_INCREMENT PRIMARY KEY,
-    book_title VARCHAR(100),
-    author_name VARCHAR(100)
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(255),
+    Author VARCHAR(255),
+    Genre VARCHAR(50),
+    PublishedYear INT
 );
 
 CREATE TABLE Library_Audit (
-    audit_id INT AUTO_INCREMENT PRIMARY KEY,
-    book_id INT,
-    book_title VARCHAR(100),
-    author_name VARCHAR(100),
-    action_type VARCHAR(50),  
-    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    AuditID INT PRIMARY KEY AUTO_INCREMENT,
+    BookID INT,
+    Title VARCHAR(255),
+    Author VARCHAR(255),
+    Genre VARCHAR(50),
+    PublishedYear INT,
+    OperationType VARCHAR(10), -- 'UPDATE' or 'DELETE'
+    OperationTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO Library (book_title, author_name)
-VALUES
-('Operating System', 'abc'),
-('Computer Networks', 'lmn'),
-('Toc', 'xyz'),
-('DBMS', 'pqr');
 
-DELIMITER //
+CREATE TRIGGER BeforeDeleteLibraryRow
+BEFORE DELETE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (BookID, Title, Author, Genre, PublishedYear, OperationType)
+    VALUES (OLD.BookID, OLD.Title, OLD.Author, OLD.Genre, OLD.PublishedYear, 'DELETE');
+END;
 
-CREATE TRIGGER before_library_update
+CREATE TRIGGER BeforeUpdateLibraryRow
 BEFORE UPDATE ON Library
 FOR EACH ROW
 BEGIN
-    INSERT INTO Library_Audit (book_id, book_title, author_name, action_type)
-    VALUES (OLD.book_id, OLD.book_title, OLD.author_name, 'UPDATE');
-END //
+    INSERT INTO Library_Audit (BookID, Title, Author, Genre, PublishedYear, OperationType)
+    VALUES (OLD.BookID, OLD.Title, OLD.Author, OLD.Genre, OLD.PublishedYear, 'UPDATE');
+END;
 
-DELIMITER ;
-
-DELIMITER //
-
-CREATE TRIGGER after_library_delete
+CREATE TRIGGER AfterDeleteLibraryStatement
 AFTER DELETE ON Library
-FOR EACH ROW
+FOR EACH STATEMENT
 BEGIN
-    INSERT INTO Library_Audit (book_id, book_title, author_name, action_type)
-    VALUES (OLD.book_id, OLD.book_title, OLD.author_name, 'DELETE');
-END //
+    INSERT INTO Library_Audit (OperationType)
+    VALUES ('DELETE STATEMENT');
+END;
 
-DELIMITER ;
+CREATE TRIGGER AfterUpdateLibraryStatement
+AFTER UPDATE ON Library
+FOR EACH STATEMENT
+BEGIN
+    INSERT INTO Library_Audit (OperationType)
+    VALUES ('UPDATE STATEMENT');
+END;
 
-UPDATE Library
-SET book_title = 'Theory of computation'
-WHERE book_id = 3;
-
-DELETE FROM Library
-WHERE book_id = 1;
-
-Select * from Library_audit;
