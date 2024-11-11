@@ -107,38 +107,55 @@ SELECT DISTINCT c.*
 FROM Client c 
 JOIN PrivateOwner p ON c.fName = p.fName AND c.lName = p.lName; 
 
-6. Find the owners who are not clients: 
- 
-SELECT p.* 
-FROM PrivateOwner p 
-LEFT JOIN Client c ON p.fName = c.fName AND p.lName = c.lName 
-WHERE c.CUID IS NULL; 
-
-7. Find the owners who have 'C' as the third alphabet in their name: 
-
 SELECT * 
-FROM PrivateOwner 
-WHERE SUBSTRING(fName, 3, 1) = 'C' OR SUBSTRING(lName, 3, 1) = 'C';
+FROM PropertyforRent 
+WHERE staffno = 123;
+
+SELECT AVG(rent) AS AvgRent 
+FROM PropertyforRent 
+WHERE city = 'Pune';
+
+SELECT branchno, COUNT(propertyNo) AS PropertyCount 
+FROM PropertyforRent 
+GROUP BY branchno;
+
 
 
 1. Update the street of branchNo 1001 to 'MG': 
 
 UPDATE Branch SET street = 'MG' WHERE branchno = 1001; 
 
-2. Delete the owner who has fname as ‘Amit’:  
-DELETE FROM PrivateOwner WHERE fName = 'Amit'; 
+List the name of staff who have salary greater than the average salary of all staff:
+SELECT fname, lname
+FROM Staff
+WHERE salary > (SELECT AVG(salary) FROM Staff);
 
-3. List the clients who pay Rent more than 10000: 
-SELECT * FROM Client WHERE Rent > 10000; 
+Find the type and rooms of properties in Pune:
 
-4. List the names of staff who have a salary greater than the average salary of all staff: 
-SELECT fname, lname FROM Staff WHERE salary > (SELECT AVG(salary) FROM Staff); 
+SELECT Type, rooms
+FROM PropertyforRent
+WHERE city = 'Pune';
 
-5. Find the type and rooms of properties in Pune: 
-SELECT Type, rooms FROM PropertyforRent WHERE city = 'Pune'; 
+Find the name of staff who work as salesman or saleswomen:
 
-6. Find the names of staff who work as salesman or saleswoman: 
-SELECT fname, lname FROM Staff WHERE position IN ('Salesman', 'Saleswoman'); 
+SELECT fname, lname
+FROM Staff
+WHERE position IN ('Salesman', 'Saleswoman');
 
-7. Find the number of properties which are of type 'Flat': 
-SELECT COUNT(*) AS NumberOfFlats FROM PropertyforRent WHERE Type = 'Flat';
+Find the number of properties which are of type 'flat':
+
+SELECT COUNT(*) AS FlatCount
+FROM PropertyforRent
+WHERE Type = 'Flat';
+
+List staff members born before 2004:
+
+SELECT fname, lname
+FROM Staff
+WHERE DOB < '2004-01-01';
+
+Find the total number of staff members in each branch:
+
+SELECT branchno, COUNT(Staffno) AS StaffCount
+FROM Staff
+GROUP BY branchno;
