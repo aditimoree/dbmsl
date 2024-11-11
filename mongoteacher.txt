@@ -49,4 +49,8 @@ db.Students.getIndexes();
 db.Teachers.getIndexes();
 db.Students.getIndexes();
 
+db.Teachers.dropIndex({ Tname: 1 });
+db.Students.dropIndex({ roll_no: 1 });
+db.Teachers.dropIndex({ dno: 1, experience: -1 });
+db.Students.dropIndex({ class: 1, roll_no: 1 });
 
