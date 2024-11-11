@@ -1,5 +1,6 @@
-create database lib;
-use lib;
+-- Create Database and Tables
+CREATE DATABASE lib;
+USE lib;
 
 CREATE TABLE Library (
     BookID INT PRIMARY KEY,
@@ -18,13 +19,17 @@ CREATE TABLE Library_Audit (
     OperationTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert Sample Data
 INSERT INTO Library (BookID, Title, Author, PublishedYear)
 VALUES 
 (1, 'CNS', 'abc', 1949),
 (2, 'DBMS', 'xyz', 1960),
 (3, 'TOC', 'lmn', 1925);
 
+-- Set delimiter to allow multi-line trigger creation
 DELIMITER //
+
+-- Row-Level Trigger for DELETE (Tracks row-specific information before deletion)
 CREATE TRIGGER Before_Library_Delete
 BEFORE DELETE ON Library
 FOR EACH ROW
@@ -32,9 +37,8 @@ BEGIN
     INSERT INTO Library_Audit (BookID, Title, Author, PublishedYear, OperationType)
     VALUES (OLD.BookID, OLD.Title, OLD.Author, OLD.PublishedYear, 'DELETE');
 END //
-DELIMITER ;
 
-DELIMITER //
+-- Row-Level Trigger for UPDATE (Tracks row-specific information before update)
 CREATE TRIGGER After_Library_Update
 AFTER UPDATE ON Library
 FOR EACH ROW
@@ -42,16 +46,35 @@ BEGIN
     INSERT INTO Library_Audit (BookID, Title, Author, PublishedYear, OperationType)
     VALUES (OLD.BookID, OLD.Title, OLD.Author, OLD.PublishedYear, 'UPDATE');
 END //
+
+-- Statement-Level Trigger for DELETE (Tracks the DELETE action as a whole)
+CREATE TRIGGER After_Library_Delete_Statement
+AFTER DELETE ON Library
+FOR EACH STATEMENT
+BEGIN
+    INSERT INTO Library_Audit (OperationType)
+    VALUES ('DELETE STATEMENT');
+END //
+
+-- Statement-Level Trigger for UPDATE (Tracks the UPDATE action as a whole)
+CREATE TRIGGER After_Library_Update_Statement
+AFTER UPDATE ON Library
+FOR EACH STATEMENT
+BEGIN
+    INSERT INTO Library_Audit (OperationType)
+    VALUES ('UPDATE STATEMENT');
+END //
+
+-- Reset the delimiter back to default
 DELIMITER ;
 
-
-select * from library;
-
+-- Perform some operations to test the triggers
 UPDATE Library
-SET title = 'Computer Networks and Security'
+SET Title = 'Computer Networks and Security'
 WHERE BookID = 1;
 
 DELETE FROM Library
 WHERE BookID = 3;
 
-Select * from Library_audit;
+-- Check the Library_Audit table
+SELECT * FROM Library_Audit;
