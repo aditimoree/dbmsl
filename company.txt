@@ -21,10 +21,10 @@ CREATE TABLE emp (
 
 INSERT INTO dept (deptno, deptname, location) 
 VALUES 
-(10, 'Dev', 'New York'),          -- for development team
-(20, 'Sales', 'Chicago'),          -- for sales team
-(30, 'HR', 'San Francisco'),       -- for HR team
-(40, 'Finance', 'Boston');         -- for finance team
+(10, 'Dev', 'New York'),         
+(20, 'Sales', 'Chicago'),          
+(30, 'HR', 'San Francisco'),       
+(40, 'Finance', 'Boston');         
 
 INSERT INTO emp (eno, ename, job, hiredate, salary, commission, deptno) 
 VALUES 
