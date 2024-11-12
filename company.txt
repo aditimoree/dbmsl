@@ -1,17 +1,13 @@
--- Create the company database
-CREATE DATABASE company;
 
--- Switch to the company database
+CREATE DATABASE company;
 USE company;
 
--- Create the dept table
 CREATE TABLE dept (
     deptno INT PRIMARY KEY,
     deptname VARCHAR(100),
     location VARCHAR(100)
 );
 
--- Create the emp table
 CREATE TABLE emp (
     eno INT PRIMARY KEY,
     ename VARCHAR(100),
@@ -32,14 +28,14 @@ VALUES
 
 INSERT INTO emp (eno, ename, job, hiredate, salary, commission, deptno) 
 VALUES 
-(1, 'Ian Smith', 'Salesman', '1980-08-15', 50000.00, 3000.00, 20),       -- Salesman for max salary and LIKE 'I%'
-(2, 'Aditi More', 'Manager', '1981-01-10', 80000.00, NULL, 10),          -- Manager for avg salary in dept 10
-(3, 'Emy Khan 'Clerk', '1981-05-20', 30000.00, NULL, 30),           -- Older hire date
-(4, 'Riya Pawar', 'Analyst', '1979-07-15', 70000.00, NULL, 10),          -- Early hire date for ordering
-(5, 'Sarah JOshi', 'Salesman', '1982-03-17', 45000.00, 1500.00, 20),    -- Salesman for max salary check
-(6, 'Gautami Patil', 'Salesman', '1980-02-11', 48000.00, 1200.00, 20),     -- Salesman with 'I%' and low salary
-(7, 'Oscar King', 'Clerk', '1983-09-30', 28000.00, NULL, 40),            -- Clerk in dept 40
-(8, 'Pratik Jadhav', 'Salesman', '1984-10-10', 49000.00, 2000.00, 20);     -- Another Salesman in Sales for testing
+(1, 'Ian Smith', 'Salesman', '1980-08-15', 50000.00, 3000.00, 20),       
+(2, 'Aditi More', 'Manager', '1981-01-10', 80000.00, NULL, 10),          
+(3, 'Emy Khan 'Clerk', '1981-05-20', 30000.00, NULL, 30),           
+(4, 'Riya Pawar', 'Analyst', '1979-07-15', 70000.00, NULL, 10),         
+(5, 'Sarah JOshi', 'Salesman', '1982-03-17', 45000.00, 1500.00, 20),   
+(6, 'Gautami Patil', 'Salesman', '1980-02-11', 48000.00, 1200.00, 20),     
+(7, 'Oscar King', 'Clerk', '1983-09-30', 28000.00, NULL, 40),            
+(8, 'Pratik Jadhav', 'Salesman', '1984-10-10', 49000.00, 2000.00, 20);     
 
 SELECT MAX(salary) AS max_salary
 FROM emp
